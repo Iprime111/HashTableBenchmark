@@ -1,0 +1,7 @@
+[submodule "libs/HashTable"]
+	path = libs/HashTable
+	url = git@github.com:Iprime111/HashTable.git
+
+[submodule "libs/Buffer"]
+	path = libs/Buffer
+	url = git@github.com:Iprime111/Buffer.git
