@@ -5,3 +5,6 @@
 [submodule "libs/Buffer"]
 	path = libs/Buffer
 	url = git@github.com:Iprime111/Buffer.git
+[submodule "libs/tracy"]
+	path = libs/tracy
+	url = https://github.com/wolfpld/tracy.git
