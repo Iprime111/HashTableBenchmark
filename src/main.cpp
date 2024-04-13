@@ -1,18 +1,24 @@
 #include <cassert>
 #include <Buffer.h>
 #include <HashTable.hpp>
+#include <cstdint>
 #include <cstdio>
 #include <Tracy.hpp>
 
 #include "ErrorCodes.hpp"
 #include "FileReader.hpp"
+#include "HashTableDefinitions.hpp"
 #include "Hashes.hpp"
 #include "WordData.hpp"
 #include "WordsComparator.hpp"
 #include "DataExporter.hpp"
 
+const size_t LOOKUPS_COUNT      = 1e9;
 const size_t HASH_TABLE_SIZE    = 1499;
 const char   WORDS_FILE_PATH [] = "%s/words.txt";
+
+template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
+static ErrorCode RunLookupTests (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words);
 
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
 static size_t CountUniqueValues (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable);
@@ -39,33 +45,46 @@ int main () {
 
     printf ("Total words number: %lu\nFilling hash table...\n", words.currentIndex);
 
-    HashTableLib::HashTable <WordData, WordData, ChecksumHash, WordsComparator> hashTable = {};
+    HashTableLib::HashTable <WordData, WordData, Crc32FastHash, WordsComparatorFast> hashTable = {};
     HashTableLib::InitHashTable (&hashTable, HASH_TABLE_SIZE);
     FillHashTable (&hashTable, &words);
     
-    printf ("Hash table filled! (%lu unique values)\nEnter load factor file path: ", CountUniqueValues (&hashTable));
+    printf ("Hash table filled! (%lu unique values)\nRunning lookup test...\n", CountUniqueValues (&hashTable));
     
-    char *loadFactorFilename = NULL;
-    scanf ("%ms[^\n]", &loadFactorFilename);
+    if (RunLookupTests(&hashTable, &words) != ErrorCode::NO_ERRORS)
+        return 0;
 
-    if (ExportLoadData (&hashTable, loadFactorFilename) != ErrorCode::NO_ERRORS)
-        printf ("Export error!\n");
+    printf ("Lookup test finished!\n");
 
     free (applicationDirectory);
-    free (loadFactorFilename);
     FreeWordsMemory (&hashTable, &words);
     
     return 0;
 }
 
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
-static ErrorCode FreeWordsMemory (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words) {
+static ErrorCode RunLookupTests (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words) {
     assert (hashTable);
     assert (words);
 
-    for (size_t wordIndex = 0; wordIndex < words->currentIndex; wordIndex++) {
-        free (words->data [wordIndex].word);
+    const char *FrameName = "Lookup frame";
+
+    for (size_t testIndex = 0; testIndex < LOOKUPS_COUNT; testIndex++) {
+        WordData *element = nullptr;
+
+        HashTableLib::FindElement (hashTable, &words->data [testIndex % words->currentIndex], &element);
+
+        if (!element)
+            return ErrorCode::HASH_TABLE_ERROR;
     }
+
+    return ErrorCode::NO_ERRORS;
+}
+
+template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
+static ErrorCode FreeWordsMemory (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words) {
+    assert (hashTable);
+    assert (words);
 
     DestroyBuffer (words);
     HashTableLib::DestroyHashTable (hashTable);

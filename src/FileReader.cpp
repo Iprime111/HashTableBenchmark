@@ -11,6 +11,7 @@
 static size_t GetFileSize     (FILE *file);
 static char  *ReadFileContent (const char *filename, size_t *fileSize);
 
+//WARNING assumes that word length < 64 bytes
 ErrorCode GetWords (const char *filename, Buffer <WordData> *words) {
     assert (filename);
     assert (words);
@@ -27,7 +28,7 @@ ErrorCode GetWords (const char *filename, Buffer <WordData> *words) {
         WordData newWord = {};
         int wordLength   = 0;
 
-        sscanf (currentWord, "%ms%n[^\n]", &newWord.word, &wordLength);
+        sscanf (currentWord, "%s%n[^\n]", newWord.word, &wordLength);
         newWord.length = (size_t) wordLength - 1;
 
         WriteDataToBuffer (words, &newWord, 1);
