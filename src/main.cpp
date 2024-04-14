@@ -29,7 +29,12 @@ static ErrorCode FillHashTable (HashTableLib::HashTable <WordData, WordData, Has
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
 static ErrorCode FreeWordsMemory (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words);
 
+
 int main () {
+    WordData a = {"aaa", 3};
+    HashTableLib::Pair <WordData, WordData> hui = {a, a};
+    printf ("%d\n", WordsComparatorFast (&hui, &hui));
+
     printf ("Reading file...\n");
 
     Buffer <WordData> words = {};

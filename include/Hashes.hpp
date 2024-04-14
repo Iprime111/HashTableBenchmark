@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <immintrin.h>
 
-#include "Tracy.hpp"
 #include "WordData.hpp"
 
 inline uint32_t OnlyZeroHash (WordData *word) {
