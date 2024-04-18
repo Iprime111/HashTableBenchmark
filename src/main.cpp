@@ -15,6 +15,8 @@
 #include "Config.hpp"
 #include "GetList.hpp"
 
+//TODO measure time spent by tracy functions
+
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
 static ErrorCode RunLookupTests (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words);
 
