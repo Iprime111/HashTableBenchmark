@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <immintrin.h>
 
+#include "Tracy.hpp"
 #include "WordData.hpp"
 
 inline uint32_t OnlyZeroHash (WordData *word) {
@@ -57,13 +58,14 @@ inline uint32_t RorHash (WordData *word) {
     uint32_t hash = 0;
 
     for (size_t charIndex = 0; charIndex < word->length; charIndex++) {
-        hash = ((hash >> 1) | (hash << (sizeof (hash) - 1) )) ^ ((uint32_t) word->word [charIndex]);
+        hash = ((hash >> 1) | (hash << (sizeof (hash) * 8 - 1) )) ^ ((uint32_t) word->word [charIndex]);
     }
 
     return hash;
 }
 
 inline uint32_t Crc32Hash (WordData *word) {
+    ZoneScoped;
     assert (word);
     assert (word->word);
 
@@ -93,6 +95,7 @@ inline uint32_t Crc32Hash (WordData *word) {
 
 //NOTE char to uint64_t, uint32_t and uint16_t conversions assume that value is aligned by 8 bytes (defaul calloc function alignment is 16 bytes on x64_86)
 inline uint32_t Crc32FastHash (WordData *word) {
+    ZoneScoped;
     assert (word);
     assert (word->word);
 

@@ -14,10 +14,12 @@ target_compile_options (${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:${DEBUG_FLAGS}
 target_compile_options (${PROJECT_NAME} PRIVATE $<$<CONFIG:NoOptimizations>:${NO_OPTIMIZATIONS_FLAGS}>)
 target_compile_options (${PROJECT_NAME} PRIVATE $<$<CONFIG:Optimizations>:${OPTIMIZATIONS_FLAGS}>)
 
-if (GENERATE_PGO AND (NOT (CMAKE_BUILD_TYPE STREQUAL "Debug")))
+if (${PGO_GENERATE} STREQUAL 1)
     target_compile_options (${PROJECT_NAME} PRIVATE -fprofile-generate)
     target_link_options    (${PROJECT_NAME} PRIVATE -fprofile-generate)
-elseif (NOT (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+endif ()
+
+if (${PGO_USE} STREQUAL 1)
     target_compile_options (${PROJECT_NAME} PRIVATE -fprofile-use)
     target_link_options    (${PROJECT_NAME} PRIVATE -fprofile-use)
 endif ()
@@ -27,7 +29,7 @@ target_link_options (${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:${DEBUG_FLAGS}>)
 target_link_options (${PROJECT_NAME} PRIVATE $<$<CONFIG:NoOptimizations>:${NO_OPTIMIZATIONS_FLAGS}>)
 target_link_options (${PROJECT_NAME} PRIVATE $<$<CONFIG:Optimizations>:${OPTIMIZATIONS_FLAGS}>)
 
-target_compile_definitions (${PROJECT_NAME} PRIVATE TRACY_ENABLE TRACY_NO_EXIT)
+target_compile_definitions (${PROJECT_NAME} PRIVATE TRACY_ENABLE)
 
 add_subdirectory (src)
 add_subdirectory (libs)
@@ -46,3 +48,5 @@ set_target_properties (${PROJECT_NAME} PROPERTIES
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/TextTransformer/text_out.txt ${CMAKE_BINARY_DIR}/bin/words.txt COPYONLY)
 
+unset (PGO_GENERATE)
+unset (PGO_USE)

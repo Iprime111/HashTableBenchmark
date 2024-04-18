@@ -1,5 +1,6 @@
-#include "DataExporter.hpp"
 #include <Tracy.hpp>
+
+#include "DataExporter.hpp"
 
 char *GetApplicationDirectory () {
     char *applicationPath = (char *) calloc (FILENAME_MAX, sizeof (char));

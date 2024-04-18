@@ -1,21 +1,19 @@
 #include <cassert>
+#include <Tracy.hpp>
 #include <Buffer.h>
 #include <HashTable.hpp>
-#include <cstdint>
 #include <cstdio>
-#include <Tracy.hpp>
 
 #include "ErrorCodes.hpp"
 #include "FileReader.hpp"
 #include "HashTableDefinitions.hpp"
 #include "Hashes.hpp"
+#include "LinkedListDefinitions.hpp"
 #include "WordData.hpp"
 #include "WordsComparator.hpp"
 #include "DataExporter.hpp"
-
-const size_t LOOKUPS_COUNT      = 1e9;
-const size_t HASH_TABLE_SIZE    = 1499;
-const char   WORDS_FILE_PATH [] = "%s/words.txt";
+#include "Config.hpp"
+#include "GetList.hpp"
 
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
 static ErrorCode RunLookupTests (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words);
@@ -28,13 +26,8 @@ static ErrorCode FillHashTable (HashTableLib::HashTable <WordData, WordData, Has
 
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
 static ErrorCode FreeWordsMemory (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words);
-
-
+ 
 int main () {
-    WordData a = {"aaa", 3};
-    HashTableLib::Pair <WordData, WordData> hui = {a, a};
-    printf ("%d\n", WordsComparatorFast (&hui, &hui));
-
     printf ("Reading file...\n");
 
     Buffer <WordData> words = {};
@@ -46,7 +39,7 @@ int main () {
     snprintf (wordsFilePath, FILENAME_MAX, WORDS_FILE_PATH, applicationDirectory);
     GetWords (wordsFilePath, &words);
 
-    free (wordsFilePath);
+    free (wordsFilePath); 
 
     printf ("Total words number: %lu\nFilling hash table...\n", words.currentIndex);
 
@@ -69,10 +62,9 @@ int main () {
 
 template <HashTableLib::HashFunction <WordData *> Hash, LinkedList::Comparator <HashTableLib::Pair <WordData, WordData> *> ElementComparator>
 static ErrorCode RunLookupTests (HashTableLib::HashTable <WordData, WordData, Hash, ElementComparator> *hashTable, Buffer <WordData> *words) {
+    ZoneScoped;
     assert (hashTable);
     assert (words);
-
-    const char *FrameName = "Lookup frame";
 
     for (size_t testIndex = 0; testIndex < LOOKUPS_COUNT; testIndex++) {
         WordData *element = nullptr;
