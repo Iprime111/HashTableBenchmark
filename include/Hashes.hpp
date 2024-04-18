@@ -3,7 +3,9 @@
 
 #include <cassert>
 #include <cstdint>
+#include <immintrin.h>
 
+#include "Tracy.hpp"
 #include "WordData.hpp"
 
 inline uint32_t OnlyZeroHash (WordData *word) {
@@ -56,13 +58,14 @@ inline uint32_t RorHash (WordData *word) {
     uint32_t hash = 0;
 
     for (size_t charIndex = 0; charIndex < word->length; charIndex++) {
-        hash = ((hash >> 1) | (hash << (sizeof (hash) - 1) )) ^ ((uint32_t) word->word [charIndex]);
+        hash = ((hash >> 1) | (hash << (sizeof (hash) * 8 - 1) )) ^ ((uint32_t) word->word [charIndex]);
     }
 
     return hash;
 }
 
 inline uint32_t Crc32Hash (WordData *word) {
+    ZoneScoped;
     assert (word);
     assert (word->word);
 
@@ -82,5 +85,32 @@ inline uint32_t Crc32Hash (WordData *word) {
 
     return ~hash; 
 }
+
+#define IntHashLoop(INT_SIZE)                                                                                                               \
+    do {                                                                                                                                    \
+        for (; byteIndex <= (ssize_t) (word->length - sizeof (uint##INT_SIZE##_t)); byteIndex += (ssize_t) sizeof (uint##INT_SIZE##_t)) {   \
+            hash = _mm_crc32_u##INT_SIZE (hash, *((uint##INT_SIZE##_t *) &word->word [byteIndex]));                                         \
+        }                                                                                                                                   \
+    } while (0)
+
+//NOTE char to uint64_t, uint32_t and uint16_t conversions assume that value is aligned by 8 bytes (defaul calloc function alignment is 16 bytes on x64_86)
+inline uint32_t Crc32FastHash (WordData *word) {
+    ZoneScoped;
+    assert (word);
+    assert (word->word);
+
+    uint32_t hash = 0xFFFFFFFF;
+
+    ssize_t byteIndex = 0;
+
+    IntHashLoop (64);
+    IntHashLoop (32);
+    IntHashLoop (16);
+    IntHashLoop (8);
+
+    return ~hash;
+}
+
+#undef IntHashLoop
 
 #endif
